@@ -5,7 +5,7 @@
 
 First day of the course. I expect to learn about version control and programming with R.
 
-https://github.com/your_github_username/IODS-project
+https://github.com/merikorho/IODS-project
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
