@@ -1,13 +1,92 @@
-# Insert chapter 2 title here
+# Assignment 2: Linear regression
 
-*Describe the work you have done this week and summarize your learning.*
+```{}
+# Meri Korhonen 9.11.2021
+# Script to fit linear regression model
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+# read the data set and check the structure
+df = read.csv("data/learning2014.csv")
+str(df)
 
-```{r}
-date()
+# access the GGally and ggplot2 libraries
+library(GGally)
+library(ggplot2)
+
+# create a summary plot matrix of all variables with ggpairs()
+#ggpairs(df[-1], lower = list(combo = wrap("facethist", bins = 20)))
+# create a more advanced plot matrix with ggpairs()
+ggpairs(df[-1], mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+
+# --- PLOT SCATTER PLOTS WITH LINEAR REGRESSION (plots not included in the final analysis)
+
+# initialize plot with data and aesthetic mapping
+p1 <- ggplot(df, aes(x = stra, y = Points, col = gender))
+# define the visualization type (points)
+p2 <- p1 + geom_point()
+# add a regression line
+p3 <- p2 + geom_smooth(method = "lm")
+# add a main title and draw the plot
+p4 <- p3 + ggtitle("Student's strategic approach versus exam points")
+# draw the plot
+p4
+
+# another scatter plot (no gender distinction) of points versus attitude
+qplot(attitude, Points, data = df) + geom_smooth(method = "lm")
+
+# --- FIT LINEAR MODEL
+
+# create a regression model with multiple explanatory variables
+my_model <- lm(Points ~ attitude + stra + surf, data = df)
+# print out a summary of the model
+summary(my_model)
+
+# see the results of the model with only attitude as explanatory variable
+my_model2 <- lm(Points ~ attitude, data = df)
+summary(my_model2)
+
+# draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
+par(mfrow = c(2,2))
+plot(my_model2, which = c(1,2,5))
 ```
 
-Here we go again...
+**Introducing the data set**
+
+The analyzed data consists of seven variables associated with people's learning habits. Collected background information includes a person's gender and age. Learning habits were measured by verbal questions and measured with a scale from 0 to 5. The variables associated with learning are attitude as well as deep, strategic and surface learning skills. The learning outcome is measured as exam points. In total, learning processes of 166 persons were studied.
+
+Figure 1 shows summary of the relationships and distributions of all studied variables. Of the studied persons majority are female (red) and around one third male (blue). In general the variables are nearly normally distributed, although some tails exist especially in data describing males. This may be due to the smaller group size, which allows the peripheral values to influence the distribution. The distribution in age is close to lognormal with most persons belonging to the age group 19-21.
+
+Here the focus is on exam points as it is a concrete outcome of the learning strategies of the studied persons. From the last column in Figure 1 it can be seen that the difference between genders are generally low and, also due to the rather low group size, in this analysis no gender distinction will be made. The highest correlation with exam points occurs with attitude (r²\~0.44). Lower correlations occur with strategic learning skills (r²\~0.15) and surface learning skills (r²\~-0.14). These three variables will be studied further.
+
+![Figure 1. Summary of all variables in the study.](summary_matrix.png)
+
+**Modeling the data**
+
+Multiple linear regression model is fitted to the data in order to see whether exam points can be predicted by persons' attitude, strategic and surface learning skills. The results are summarized in Table 1. The multiple R-squared of the fit is 0.21, indicating that 21 % of the variety in exam points can be attributed to these variables.
+
+Of the three explanatory variables only attitude has P-value close to zero, indicating statistically significant correlation with exam points. According to the P-value, strategic and surface learning skills have no significant influence on success in exam. To confirm this, it is necessary to look at the standardized regression coefficients. They are 0.42, 0.11 and -0.05 for attitude, strategic and surface learning skills, respectively. It is seen that the standardized regression coefficients for attitude and strategic learning skills have the same order of magnitude. Therefore the strategic learning skills could potentially have importance for success in exam. However, as attitude is still clearly the most important predictor, both strategic and surface learning skills will be excluded from further analysis and I will only focus on attitude.
+
+|           | Estimate | Std. Error | T value | Pr(>\|t\|)      |
+|-----------|----------|------------|---------|-----------------|
+| Intercept | 11.0171  | 3.6837     | 2.991   | 0.00322 \*\*    |
+| attitude  | 3.3952   | 0.5741     | 5.913   | 1.93e-08 \*\*\* |
+| strategic | 0.8531   | 0.5416     | 1.575   | 0.11716         |
+| surface   | -0.5861  | 0.8014     | -0.731  | 0.46563         |
+
+: Table 1. Summary of results from fitting multiple linear regression model to exam points with attitude, strategic and surface learning skills as explanatory variables. (Residual standard error = 5.296, DF = 162, Multiple R-squared = 0.2074, Adjusted R-squared = 0.1927, F-statistic = 14.13, p-value = 3.156e-08)
+
+In Table 2 the results of the linear regression fit with attitude as explanatory variable are summarized. Now the R-squared is 0.19, indicating that 19 % of the variety in exam points can be predicted with attitude. The adjusted R-squared is also 0.19, which is equal to the adjusted R-squared obtained with all three explanatory variables. Therefore it can be concluded that the strategic and surface learning skills do not increase, or increase only very slightly, the capability of the model to predict exam points.
+
+|           | Estimate | Std. error | T value | Pr(>\|t\|)      |
+|-----------|----------|------------|---------|-----------------|
+| Intercept | 11.6372  | 1.8303     | 6.358   | 1.95e-09 \*\*\* |
+| attitude  | 3.5255   | 0.5674     | 6.214   | 4.12e-09 \*\*\* |
+
+: Table 2. Summary of results from fitting linear regression model to exam points with attitude as explanatory variable. (Residual standard error = 5.32, DF = 164, Multiple R-squared = 0.1906,	Adjusted R-squared = 0.1856, F-statistic = 38.61, p-value = 4.119e-09)
+
+**Diagnostics of the linear fit**
+
+In order to estimate how well the fitted model represents the data and the assumption of normally distributed observations, distributions of the residuals are plotted and shown in Figure 2. Based on the Residuals vs Fitted plot, the spread of the residuals seems uniform and hence the assumed linear fit is considered reasonable for the analyzed data set. However, there appears to be three outliers (numbered 35, 56, 135, although not very well seen in the plot) with very large negative residuals. The theoretical quantiles (Normal Q-Q) show that the residuals are normally distributed except for the same three observations.
+
+To determine whether these three outliers potentially influence the fitted linear regression model, residuals are plotted against leverage. Because all the points are within the Cook's distance, they are not influential in this case. Therefore the model can be concluded to be an appropriate representation of the data.
+
+![Figure 2. Diagnostics of the linear fit with attitude as explanatory variable.](diagnostics.png)
