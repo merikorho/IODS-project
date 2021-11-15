@@ -16,7 +16,7 @@
     # create a more advanced plot matrix with ggpairs()
     ggpairs(df[-1], mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
 
-    # --- PLOT SCATTER PLOTS WITH LINEAR REGRESSION (these plots not included in the final analysis)
+    # --- PLOT SCATTER PLOTS WITH LINEAR REGRESSION (plots not included in the final analysis)
 
     # initialize plot with data and aesthetic mapping
     p1 <- ggplot(df, aes(x = stra, y = Points, col = gender))
