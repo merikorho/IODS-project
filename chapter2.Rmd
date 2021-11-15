@@ -1,53 +1,51 @@
 # Assignment 2: Linear regression
 
-```{}
-# Meri Korhonen 9.11.2021
-# Script to fit linear regression model
+    # Meri Korhonen 9.11.2021
+    # Script to fit linear regression model
 
-# read the data set and check the structure
-df = read.csv("data/learning2014.csv")
-str(df)
+    # read the data set and check the structure
+    df = read.csv("data/learning2014.csv")
+    str(df)
 
-# access the GGally and ggplot2 libraries
-library(GGally)
-library(ggplot2)
+    # access the GGally and ggplot2 libraries
+    library(GGally)
+    library(ggplot2)
 
-# create a summary plot matrix of all variables with ggpairs()
-#ggpairs(df[-1], lower = list(combo = wrap("facethist", bins = 20)))
-# create a more advanced plot matrix with ggpairs()
-ggpairs(df[-1], mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+    # create a summary plot matrix of all variables with ggpairs()
+    #ggpairs(df[-1], lower = list(combo = wrap("facethist", bins = 20)))
+    # create a more advanced plot matrix with ggpairs()
+    ggpairs(df[-1], mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
 
-# --- PLOT SCATTER PLOTS WITH LINEAR REGRESSION (plots not included in the final analysis)
+    # --- PLOT SCATTER PLOTS WITH LINEAR REGRESSION (plots not included in the final analysis)
 
-# initialize plot with data and aesthetic mapping
-p1 <- ggplot(df, aes(x = stra, y = Points, col = gender))
-# define the visualization type (points)
-p2 <- p1 + geom_point()
-# add a regression line
-p3 <- p2 + geom_smooth(method = "lm")
-# add a main title and draw the plot
-p4 <- p3 + ggtitle("Student's strategic approach versus exam points")
-# draw the plot
-p4
+    # initialize plot with data and aesthetic mapping
+    p1 <- ggplot(df, aes(x = stra, y = Points, col = gender))
+    # define the visualization type (points)
+    p2 <- p1 + geom_point()
+    # add a regression line
+    p3 <- p2 + geom_smooth(method = "lm")
+    # add a main title and draw the plot
+    p4 <- p3 + ggtitle("Student's strategic approach versus exam points")
+    # draw the plot
+    p4
 
-# another scatter plot (no gender distinction) of points versus attitude
-qplot(attitude, Points, data = df) + geom_smooth(method = "lm")
+    # another scatter plot (no gender distinction) of points versus attitude
+    qplot(attitude, Points, data = df) + geom_smooth(method = "lm")
 
-# --- FIT LINEAR MODEL
+    # --- FIT LINEAR MODEL
 
-# create a regression model with multiple explanatory variables
-my_model <- lm(Points ~ attitude + stra + surf, data = df)
-# print out a summary of the model
-summary(my_model)
+    # create a regression model with multiple explanatory variables
+    my_model <- lm(Points ~ attitude + stra + surf, data = df)
+    # print out a summary of the model
+    summary(my_model)
 
-# see the results of the model with only attitude as explanatory variable
-my_model2 <- lm(Points ~ attitude, data = df)
-summary(my_model2)
+    # see the results of the model with only attitude as explanatory variable
+    my_model2 <- lm(Points ~ attitude, data = df)
+    summary(my_model2)
 
-# draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
-par(mfrow = c(2,2))
-plot(my_model2, which = c(1,2,5))
-```
+    # draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
+    par(mfrow = c(2,2))
+    plot(my_model2, which = c(1,2,5))
 
 **Introducing the data set**
 
@@ -81,7 +79,7 @@ In Table 2 the results of the linear regression fit with attitude as explanatory
 | Intercept | 11.6372  | 1.8303     | 6.358   | 1.95e-09 \*\*\* |
 | attitude  | 3.5255   | 0.5674     | 6.214   | 4.12e-09 \*\*\* |
 
-: Table 2. Summary of results from fitting linear regression model to exam points with attitude as explanatory variable. (Residual standard error = 5.32, DF = 164, Multiple R-squared = 0.1906,	Adjusted R-squared = 0.1856, F-statistic = 38.61, p-value = 4.119e-09)
+: Table 2. Summary of results from fitting linear regression model to exam points with attitude as explanatory variable. (Residual standard error = 5.32, DF = 164, Multiple R-squared = 0.1906, Adjusted R-squared = 0.1856, F-statistic = 38.61, p-value = 4.119e-09)
 
 **Diagnostics of the linear fit**
 
