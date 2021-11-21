@@ -1,0 +1,163 @@
+# **Assignment 3: Logistic regression**
+
+In this analysis the aim is to study students' alcohol use. The study group consists of two Portuguese secondary level schools. The data includes background information such as age, gender and address as well as different variables describing family life and freetime. Alcohol use is presented as daily consumption on both weekdays and weekends on the scale from 1 to 5. Alcohol use is defined as high if the average daily consumption is over 2. The school performance is measured as grades in Portuguese language and mathematics (scale from 0 to 20) and here the average of the two grades is used. Together the study includes 370 students for whom all information (32 variables) is available.
+
+```{r}
+# read the data set and check the structure
+alc = read.csv("data/alcohol_use.csv")
+str(alc)
+
+```
+
+```{r include=FALSE}
+# access the tidyverse libraries tidyr, dplyr, ggplot2
+library(tidyr); library(dplyr); library(ggplot2)
+```
+
+```{r}
+# initialize a plot of alcohol use
+g1 <- ggplot(data = alc, aes(x = alc_use, fill = sex))
+
+# define the plot as a bar plot and draw it
+g1 + geom_bar()
+```
+
+The figure above shows that the alcohol use in the study group is in general rather low. This is true especially for female students. This should be kept in mind when interpreting the results as the very few female students using lots of alcohol may influence the result considerably.
+
+```{r}
+# draw a bar plot of each variable
+gather(alc[-1]) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar()
+
+```
+
+In the figure above all variables are presented as bar plots. To study the causes and/or influences of high alcohol consumption (high_use), I chose to take a look at absences, final grades (G3), failures and family relations (famrel). Number of previous class failures are given from scale 1 to 4. Quality of family relations are measured from 1 to 5 (1 - very bad to 5 - excellent).
+
+Initial hypothesis is that high alcohol use is related to frequent absences and lower grades. Previous class failures is assumed to have positive correlation with alcohol consumption. The quality of family relations is expected to be lower when alcohol consumption is high. It should be noted that to state whether these are causes or effects of high alcohol consumption is out of the scope of this analysis. 
+
+As seen in the figures below, the hypothesis of more frequent absences and lower grades with high alcohol consumption seems to be valid for male students. From the boxplot it is difficult to see whether or not the previous class failures are related to high alcohol use as the number of failures is so low in both groups. While the median value for family relations is rather good, 4, for both female and male students with or without high alcohol consumption, more students reported excellent (5) quality of family relations in the group with low alcohol consumption than in the group of high alcohol consumption indicating that the assumption is potentially valid. However, more thorough statistical analysis is needed to state the validity of these assumptions.
+
+```{r}
+# initialise a plot of high_use and absences
+g1 <- ggplot(alc, aes(x = high_use, y = absences, col = sex))
+
+# define the plot as a boxplot and draw it
+g1 + geom_boxplot() + ylab("absences") + ggtitle("Student absences by alcohol consumption and sex")
+
+```
+
+
+```{r}
+# initialize a plot of high_use and grades
+g2 <- ggplot(alc, aes(x = high_use, y = G3, col = sex))
+
+# define the plot as a boxplot and draw it
+g2 + geom_boxplot() + ylab("grade") + ggtitle("Student grades by alcohol consumption and sex")
+```
+
+```{r}
+# initialise a plot of high_use and failures
+g3 <- ggplot(alc, aes(x = high_use, y = failures, col = sex))
+
+# define the plot as a boxplot and draw it
+g3 + geom_boxplot() + ylab("failures") + ggtitle("Class failures by alcohol consumption and sex")
+
+```
+
+```{r}
+# initialise a plot of high_use and family relations
+g4 <- ggplot(alc, aes(x = high_use, y = famrel, col = sex))
+
+# define the plot as a boxplot and draw it
+g4 + geom_boxplot() + ylab("family relations") + ggtitle("Family relations by alcohol consumption and sex")
+
+```
+
+Logistic model is fitted to the data with high alcohol consumption as target variable and absences, final grades, class failures and family relations as explanatory variables. The low (< 0.05) p-value in absences and failures (shown in the summary below) indicates that they are statistically significant in predicting high alcohol consumption. Class failures and family relations do not show significant correspondence with the alcohol use.
+
+```{r}
+# find logistic model with all four explanatory variables
+m <- glm(high_use ~ absences + G3 + failures + famrel, data = alc, family = "binomial")
+
+# print out a summary of the model
+summary(m)
+```
+
+To further analyse the significance of the variables, the odds ratios and their confidence intervals are calculated (shown below). The confidence intervals for the odds ratios of grades and family relations include value 1. Therefore it can be concluded that there is no significant association between grades or family relations and high alcohol consumption. The confidence intervals for the odds ratios of absences and failures are above 1 and therefore both frequent absences and previous class failurescan be considered to increase the probability of high alcohol consumption. This supports the initial hypothesis.
+
+Although grades and family relations are not found as significant predictors, the fact that their odds ratios are below 1 supports the hypothesis that grades and quality of family relations decrease with high alcohol consumption.
+
+```{r}
+# compute odds ratios (OR)
+OR <- coef(m) %>% exp
+
+# compute confidence intervals (CI)
+CI <- confint(m) %>% exp
+
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+```
+
+Since only absences and failures were found to have statistically significant relationship with high alcohol consumption, they are kept as the two explanatory variables in further analysis.
+
+```{r}
+# find the model with two most significant explanatory variables
+m2 <- glm(high_use ~ absences + failures, data = alc, family = "binomial")
+
+# print out a summary of the model
+summary(m2)
+```
+
+Next it is tested how accurately the model with absences and failures as explanatory variables predicts high alcohol consumption. From the table and figure below, it is seen that in the observations around 70 % of the students reported low alcohol use while 30 % reported high alcohol use. For the prediction the same distribution is 92 % and 8 %. The model is therefore clearly missing an element predicting the risk of high alcohol consumption.
+
+```{r}
+# predict() the probability of high_use
+probabilities <- predict(m2, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>% addmargins()
+```
+
+```{r}
+# initialize a plot of 'high_use' versus 'probability' in 'alc'
+g <- ggplot(alc, aes(x = probability, y = high_use, col = prediction))
+
+# define the geom as points and draw the plot
+g + geom_point()
+
+```
+
+The number of wrong predictions in the training data is 0.29 meaning that in 29 % of the cases the student's alcohol consumption was could not be correctly predicted with the given variables (absences and failures). However, as clearly over 50 % of the cases could be correctly predicted with the model, it seems more plausible to use the model in predicting the student's alcohol use than simple guessing strategy.
+
+```{r}
+# define a loss function (mean prediction error)
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# compute the average number of wrong predictions in the training data
+loss_func(class = alc$high_use, prob = alc$probability)
+```
+
+Finally, I perform 10-fold cross-validation on the model. The results indicate that the test set performance is 0.30, which is larger than 0.26 obtained in the DataCamp model example. This means that the DataCamp model performance is better. In addition to absences and failures, the DataCamp model used gender as explanatory variable. As I noted in the beginning, the data shows very few female students with high alcohol consumption. Therefore, already based on the first figure, it should have been clear that being male increases the probability of high alcohol consumption. If I would refit the model, I would definitely include gender there as well.
+
+```{r}
+# K-fold cross-validation
+library(boot)
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
+
+
+```{r}
+date()
+```
+
