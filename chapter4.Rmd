@@ -186,7 +186,11 @@ Grouping with two centers (above) can be compared to grouping with three centers
 km <-kmeans(boston_scaled, centers = 3)
 
 # plot the Boston dataset with clusters
-pairs(boston_scaled[1:5], col = km$cluster, lower.panel = NULL)
+pairs(boston_scaled, col = km$cluster, lower.panel = NULL)
 ```
 
+
+```{r}
+date()
+```
 
