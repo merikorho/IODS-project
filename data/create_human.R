@@ -7,6 +7,7 @@ gender <- read.csv("http://s3.amazonaws.com/assets.datacamp.com/production/cours
 
 # look at the (column) names and rename them with shorter versions
 names(human)
+
 colnames(human)[1] <- "HDIrank" # HDI rank
 colnames(human)[3] <- "HDI" # Human Development Index
 colnames(human)[4] <- "LEB" # Life Expectancy at Birth
@@ -14,7 +15,7 @@ colnames(human)[5] <- "EYE" # Expected Years of Education
 colnames(human)[6] <- "MYE" # Mean Years of Education 
 colnames(human)[7] <- "GNI" # Gross National Income
 colnames(human)[8] <- "GNI-HDI" # GNI rank - HDI rank
-  
+
 names(gender)
 colnames(gender)[1] <- "GIIrank" # GII rank
 colnames(gender)[3] <- "GII" # Gender Inequality Index
@@ -33,7 +34,7 @@ summary(gender)
 # ratio of female and male populations with secondary education
 gender$eduR <- gender$edu2F/gender$edu2M
 
-# ratio of labour force participation of females and males
+# ratio of labor force participation of females and males
 gender$labR <- gender$labF/gender$labM
 
 # access the dplyr library
