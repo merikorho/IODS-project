@@ -1,6 +1,6 @@
 # **Assignment 5: Dimensionality Reduction Techniques**
 
-In order to see how Principal Component Analysis works, a dataset of parameters describing living conditions in different countries is studied. The variables include maternal mortality (Mat.Mor), life expectancy (Life.Exp), expected years of education (Edu.Exp) adolescent birth rate (ado.Birth), gross national income (GNI), ratio of labor force participation of females and males (Labo.FM), ratio of female and male populations with secondary education (Edu2.FM) and ration of female representatives in parliament (Parli.F). The dataset is combined from two sources. More information can be found from http://hdr.undp.org/en/content/human-development-index-hdi . 
+Here a dataset of parameters describing living conditions in different countries is studied. The variables include maternal mortality (Mat.Mor), life expectancy (Life.Exp), expected years of education (Edu.Exp) adolescent birth rate (ado.Birth), gross national income (GNI), ratio of labor force participation of females and males (Labo.FM), ratio of female and male populations with secondary education (Edu2.FM) and ratio of female representatives in parliament (Parli.F). Below a summay of the variables is shown. More information can be found from <http://hdr.undp.org/en/content/human-development-index-hdi>.
 
 ```{r include=FALSE}
 # access needed packages
@@ -13,6 +13,7 @@ library(ggplot2); library(GGally)
 human = read.csv("data/human.csv")
 summary(human)
 ```
+
 As can be seen from the figure below, many of the variables are skewed. The skewedness is negative for F/M -ratio in secondary education and labor force as well as life expectancy. This means that although in many countries the ratios and life expectancy are rather high, the mean is lowered by a few countries having very low ratios or life expectancy. The skewedness is also quite natural as both, the ratio and life expectancy have a rather set upper limit that cannot be exceeded. The distribution of female representatives in parliament is positively skewed, meaning that it is more typical for countries to have parliament where majority of representatives are men and the parliaments with female majority are rarities. Gross national income, maternal mortality and adolescent birth rate have strong positively skewed distributions. Expected years of education has the only nearly normal distribution.
 
 ```{r}
@@ -28,20 +29,34 @@ The correlations between variables are better seen in the correlation matrix bel
 cor(human[-1]) %>% corrplot
 ```
 
-Next, in order to analyse the dependencies further, I perform Principal Component Analysis on the non-standardized dataset. It is already seen in the warning messages when plotting that there is a large difference in the variances of the variables. This leads typically to one variable with the largest variance to dominate.
+As seen from the correlation matrix, some of the variables are highly correlated. Therefore it could be useful to perform Principal Component Analysis in order to reduce the dimensions of the dataset and find the linear combination(s) accounting for most of the variation in the data. First PCA is performed on the non-standardized dataset. It is already seen in the warning messages when plotting that there is a large difference in the variances of the variables. Non-standardized dataset where variables have very different scales and magnitudes lead typically to dominance of one variable with the largest variance. This is the case also here: the gross national income domianates the scaling of the figure, leaving the arrows representing other variables with length zero and therefore they are not plotted.
 
 ```{r}
 # perform principal component analysis (with the SVD method)
 pca_human <- prcomp(human[-1])
 
-# draw a biplot of the principal component representation and the original variables
-biplot(pca_human, choices = 1:2, cex = c(0.8, 1), col =  c("grey40", "deeppink2"))
+# create a summary of pca_human
+s <- summary(pca_human)
 
-# print out a summary of pca_human
-summary(pca_human)
+# rounded percentages of variance captured by each PC
+pca_pr <- round(100*s$importance[2,], digits = 1) 
+
+# print out the percentages of variance
+pca_pr
+
+# create object pc_lab to be used as axis labels
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+# draw a biplot
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
 ```
 
-It is better to do the PCA with standardized data and now the visualization is nicely centered around zero as seen below.
+It is wiser to do the PCA with standardized data and now the visualization is nicely centered around zero as seen in the figure below. The pink arrows representing the original variables show same correlations as already seen in the correlation matrix: life expectancy is correlated with education and gross national income (small angle between the arrows). They also correlate negatively with maternal mortality and adolescent birth rate (angle of 180 degrees). These arrows are nearly parallel to the PC1 axis, meaning that they do not considerably contribute to PC2. In contrast, female representatives in parliament and labor force ratio contribute mostly to PC2 and not considerably to PC1. The slight tilt in the Parli.F -arrow could, however, indicate that the ratio of females in parliament is likely to be higher in countries with higher education, higher gross national income and higher life expectancy.
+
+The summary of the components (below) shows that the first PC explains roughly half (54 %) of the variance. The second PC explains an additional 16 %. In order to explain over 90 % of the variance, in total five components are needed, but 70 % explained by the two first components can also be regarded as sufficient. Visualizing PC1 and PC2 on a biplot (below), some clustering is revealed, although the groups are not very tight. Dots labeled with small numbers, representing industrialized countries such as most European countries, are concentrated to the negative (left) side of the x-axis (PC1) whereas larger numbers, representing less developed, for example many African countries, are to the positive (right) side. The PC1 can thus be seen to represent life expectancy and the variables correlated with it. PC2 does not contribute to the life expectancy but increases the spread along the y-axis.
+
+Although it was nice to learn about Principal Component Analysis, it mainly confirms what is already seen from the correlation matrix. However, I can see its usefulness in analyzing multivariate datasets.
 
 ```{r}
 
@@ -51,14 +66,24 @@ human_std <- scale(human[-1])
 # perform principal component analysis (with the SVD method)
 pca_human_std <- prcomp(human_std)
 
-# draw a biplot of the principal component representation and the original variables
-biplot(pca_human_std, choices = 1:2, cex = c(0.8, 1), col =  c("grey40", "deeppink2"))
+# create a summary of pca_human_std
+s <- summary(pca_human_std)
 
-# print out a summary of pca_human_std
-summary(pca_human_std)
+# rounded percentages of variance captured by each PC
+pca_pr <- round(100*s$importance[2,], digits = 1) 
+
+# print out the percentages of variance
+pca_pr
+
+# create object pc_lab to be used as axis labels
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+# draw a biplot
+biplot(pca_human_std, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
 ```
 
-Unfortunately there was some problems with dependencies with my version of R and the FactoMineR package and I was not able to install the package. I was too lazy and had too little time to solve this problem. Here are the code snippets though, copy-pasted from DataCamp. Unfortunately the DataCamp visualization did not work either, so I am not able to analyze the data.
+Unfortunately there was some problems with dependencies with my version of R and the FactoMineR package and I was not able to install the package. Quick googling revealed that this problem appears with Linux systems and the way to solve it is to downgrade to older version of R. I did not bother to do that, because I did not want to run into dependency problems with other libraries. Here are the code snippets though as well as the data visualization, copy-pasted from DataCamp. Unfortunately the Multiple Correspondence Analysis exercise did not work on DataCamp either, so I am not able to perform the actual analysis here even based on the plots from DataCamp.
 
 ```{r eval=FALSE, include=FALSE}
 library(FactoMineR)
@@ -81,3 +106,5 @@ summary(mca)
 # visualize MCA
 plot(mca, invisible=c("ind"), habillage = "quali", graph.type = "classic")
 ```
+
+![](data/tea_time.png)
